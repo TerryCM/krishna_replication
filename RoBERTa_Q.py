@@ -67,9 +67,9 @@ train_data = pd.read_excel("Dataset/Train_data.xlsx")
 test_data = pd.read_excel("Dataset/Test_data.xlsx")
 val_data = pd.read_excel("Dataset/Val_data.xlsx")
 
-train_labels = train_data["t2_label"].tolist()
-test_labels = test_data["t2_label"].tolist()
-val_labels = val_data["t2_label"].tolist()
+train_labels = train_data["t1_label"].tolist()
+test_labels = test_data["t1_label"].tolist()
+val_labels = val_data["t1_label"].tolist()
 
 
 label_dict = {"yes": 0, "pyes": 1, "middle": 2, "pno": 3, "no": 4}
@@ -104,7 +104,7 @@ test_dataset = SWDADataset(test_encodings, test_labels)
 
 training_args = TrainingArguments(
     output_dir="./RoBERTa_Q",  # output directory
-    num_train_epochs=8,  # total number of training epochs
+    num_train_epochs=32,  # total number of training epochs
     per_device_train_batch_size=16,  # batch size per device during training
     per_device_eval_batch_size=16,  # batch size for evaluation
     warmup_steps=200,  # number of warmup steps for learning rate scheduler
@@ -113,6 +113,7 @@ training_args = TrainingArguments(
     metric_for_best_model="f1",
     evaluation_strategy="epoch",
     save_strategy="epoch",
+    learning_rate=2e-5,
 )
 
 
@@ -130,6 +131,7 @@ trainer.evaluate()
 trainer.save_model("RoBERTa_Q")
 tokenizer.save_pretrained("RoBERTa_Q")
 trainer.save_metrics("RoBERTa_Q", metrics=trainer.evaluate())
+trainer.model.eval()
 y_true = test_labels
 y_pred = trainer.predict(test_dataset).predictions.argmax(-1)
 print(classification_report(y_true, y_pred))
